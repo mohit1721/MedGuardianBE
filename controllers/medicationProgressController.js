@@ -11,8 +11,7 @@ const calculateMedicationProgress = async (req, res) => {
       return res.status(404).json({ error: "Medication not found" });
     }
     console.log("🔄 Updated takenHistory:", medication.takenHistory);
-    console.log(`🕒 Checking for Date: ${doseDate.toISOString().split("T")[0]}`);
-    console.log(`📌 Available Entries:`, medication.takenHistory);
+
     
     if (!Array.isArray(medication.takenHistory)) {
       medication.takenHistory = [];
