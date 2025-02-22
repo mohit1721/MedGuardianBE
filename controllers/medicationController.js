@@ -314,7 +314,7 @@ const markAsTaken = async (req, res) => {
     const formattedTime = moment(doseTime, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A");
 
     const currentTime = moment().tz("Asia/Kolkata");
-   const scheduledTime = moment(`${formattedToday} ${formattedTime}`, "DD-MM-YYYY hh:mm A");
+   const scheduledTime = moment(`${formattedToday} ${formattedTime}`, "DD-MM-YYYY hh:mm A", "Asia/Kolkata");
 
     // ✅ Prevent marking before time
     if (currentTime.isBefore(scheduledTime)) {
