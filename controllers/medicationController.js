@@ -11,7 +11,8 @@ const addMedication = async (req, res) => {
     if (!name || !dosage || !time || !startDate || !duration) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
   }
-   // Ensure time is an array, format each time properly
+ 
+   // Ensure time is an array, format each time properly in AM/PM
    const formattedTimes = Array.isArray(time)
    ? time.map(t => moment(t, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A"))
    : [moment(time, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A")];
