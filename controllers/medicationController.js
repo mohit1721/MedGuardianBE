@@ -4,15 +4,19 @@ const MedicationHistory = require("../models/medicationHistoryModel");
 const { sendEmail } = require("../config/nodemailerConfig");
 const emailTemplateAdd = require("../mailTemplates/emailTemplateAdd")
 const moment = require("moment-timezone");
-// Add Medication
+// Add Medication--formattedTime chng
 const addMedication = async (req, res) => {
   try {
     const { name, dosage, time, startDate, duration, reminderEnabled } = req.body;
+    if (!name || !dosage || !time || !startDate || !duration) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+  }
+  const formattedTime = moment(time, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A");
     const newMedication = new Medication({
       userId: req.user.id,
       name,
       dosage,
-      time,
+      formattedTime,
       startDate,
       duration,
       reminderEnabled,
@@ -24,7 +28,7 @@ const addMedication = async (req, res) => {
     const emailContent = emailTemplateAdd(
       name, 
       dosage, 
-      time, 
+      formattedTime, 
       startDate, 
       duration, 
       reminderEnabled
@@ -53,131 +57,20 @@ const getMedications = async (req, res) => {
   }
 };
 
-// Update Medication
-const updateMedication = async (req, res) => {
-  try {
-    const medication = await Medication.findById(req.params.id);
-    if (!medication) return res.status(404).json({ error: "Medication not found" });
-
-    Object.assign(medication, req.body);
-    await medication.save();
-    res.json({ message: "Medication updated successfully", medication });
-  } catch (error) {
-    res.status(500).json({ error: "Server Error" });
-  }
-};
-// When updating the medication
+// // Update Medication
 // const updateMedication = async (req, res) => {
 //   try {
-//     const { name, dosage, time, startDate, duration } = req.body;
+//     const medication = await Medication.findById(req.params.id);
+//     if (!medication) return res.status(404).json({ error: "Medication not found" });
 
-//     // Parse time before saving to backend
-//     const parsedTime = parse(time, "HH:mm", new Date());
-
-//     const updatedMedication = await Medication.findByIdAndUpdate(
-//       req.params.id,
-//       { name, dosage, time: parsedTime, startDate, duration },
-//       { new: true }
-//     );
-
-//     res.json(updatedMedication);
+//     Object.assign(medication, req.body);
+//     await medication.save();
+//     res.json({ message: "Medication updated successfully", medication });
 //   } catch (error) {
-//     res.status(500).json({ error: "Failed to update medication" });
+//     res.status(500).json({ error: "Server Error" });
 //   }
 // };
-
  
-// const markAsTaken = async (req, res) => {
-//   const { medicationId } = req.params;
-//   const { doseTime } = req.body; // Dose time (e.g., "8 AM")
-
-//   try {
-//     const medication = await Medication.findById(medicationId);
-
-//     if (!medication) {
-//       return res.status(404).json({ error: "Medication not found" });
-//     }
-
-//     const today = moment().format("YYYY-MM-DD");
-
-//     // Check if this dose time has already been marked for today
-//     const todayEntry = medication.takenHistory.find(entry => moment(entry.date).format("YYYY-MM-DD") === today);
-    
-//     if (todayEntry && todayEntry.takenHistory?.includes(doseTime)) {
-//       return res.status(400).json({ error: `Dose at ${doseTime} already taken today.` });
-//     }
-
-//     // Add doseTime to today's takenHistory
-//     if (todayEntry) {
-//       todayEntry.takenHistory?.push(doseTime);
-//     } else {
-//       medication.takenHistory?.push({ date: new Date(), takenHistory: [doseTime] });
-//     }
-
-//     await medication.save();
-//     res.status(200).json({ message: `Marked as taken at ${doseTime}`, medication });
-
-//   } catch (error) {
-//     res.status(500).json({ error: "Error marking medication as taken", details: error.message });
-//   }
-// };
-
-
-// const markAsTaken = async (req, res) => {
-//   const { medicationId } = req.params;
-
-//   try {
-//     // Find the medication by ID
-//     const medication = await Medication.findById(medicationId);
-
-//     if (!medication) {
-//       return res.status(404).json({ error: "Medication not found" });
-//     }
-
-//     // Get the current date and time
-//     const currentTime = new Date();
-
-//     // Check if the medication has already been marked as taken today (on this date and time)
-//     const hasTakenToday = medication.takenHistory.some((entry) => {
-//       const takenDate = new Date(entry);
-//       return takenDate.toDateString() === currentTime.toDateString(); // Compare the date part only
-//     });
-
-//     if (hasTakenToday) {
-//       return res.status(400).json({
-//         error: "Medication has already been marked as taken today.",
-//       });
-//     }
-
-//     // Toggle the "taken" field by setting it to the opposite of its current value
-//     medication.taken = true;
-
-//     // Add the current date and time to the takenHistory array
-//     medication.takenHistory.push(currentTime);
-
-//     // Save the updated medication document
-//     await medication.save();
-
-//     // Recalculate takenDays and skippedDays using the new method
-//     const { takenDays, skippedDays } = medication.calculateTakenAndSkippedDays();
-
-//     // Return the response with updated medication data
-//     res.status(200).json({
-//       message: `Medication ${medication.name} marked as taken.`,
-//       medication: {
-//         ...medication._doc,
-//         takenDays,   // Send the updated takenDays
-//         skippedDays, // Send the updated skippedDays
-//       },
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       error: "Error marking medication as taken",
-//       details: error.message,
-//     });
-//   }
-// };
-
 // Delete Medication
 const deleteMedication = async (req, res) => {
   try {
@@ -232,7 +125,8 @@ const getDoseSchedule = async (req, res) => {
     res.status(500).json({ error: "Error fetching dose schedule", details: error.message });
   }
 };
-// Controller function to get a medication by ID
+ 
+
 const getMedicationById = async (req, res) => {
   console.log("🔍 Request Params:", req.params); // Debugging log
   console.log("🔍 Extracted ID:", req.params.id, "Type:", typeof req.params.id); // Check ID format
@@ -250,12 +144,7 @@ const getMedicationById = async (req, res) => {
     id = id.toString();
   }
 
-  // // Check if ID is a valid MongoDB ObjectId
-  // if (!mongoose.Types.ObjectId.isValid(id)) {
-  //   console.error("❌ Invalid ObjectId:", id);
-  //   return res.status(400).json({ error: "Invalid Medication ID format." });
-  // }
-
+ 
   try {
     const medication = await Medication.findById(id);
 
@@ -428,7 +317,7 @@ const markAsTaken = async (req, res) => {
     // if (currentTime.diff(scheduledTime, "minutes") < 0) {
     //   return res.status(400).json({ error: `You cannot mark this dose before ${formattedTime}.` });
     // }
-    console.log("✅ Received doseTime:", doseTime);
+console.log("✅ Received doseTime:", doseTime);
 console.log("✅ Parsed formattedTime:", formattedTime);
 console.log("✅ Current Server Time:", currentTime.format("DD-MM-YYYY hh:mm A"));
 console.log("✅ Scheduled Dose Time:", scheduledTime.format("DD-MM-YYYY hh:mm A"));
