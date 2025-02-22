@@ -4,19 +4,23 @@ const MedicationHistory = require("../models/medicationHistoryModel");
 const { sendEmail } = require("../config/nodemailerConfig");
 const emailTemplateAdd = require("../mailTemplates/emailTemplateAdd")
 const moment = require("moment-timezone");
-// Add Medication--formattedTime chng
+// Add Medication
 const addMedication = async (req, res) => {
   try {
     const { name, dosage, time, startDate, duration, reminderEnabled } = req.body;
     if (!name || !dosage || !time || !startDate || !duration) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
   }
-  const formattedTime = moment(time, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A");
+   // Ensure time is an array, format each time properly
+   const formattedTimes = Array.isArray(time)
+   ? time.map(t => moment(t, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A"))
+   : [moment(time, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A")];
+
     const newMedication = new Medication({
       userId: req.user.id,
       name,
       dosage,
-      formattedTime,
+      time: formattedTimes, // Store array of formatted times,
       startDate,
       duration,
       reminderEnabled,
@@ -28,7 +32,8 @@ const addMedication = async (req, res) => {
     const emailContent = emailTemplateAdd(
       name, 
       dosage, 
-      formattedTime, 
+      // time, 
+      formattedTimes.join(", "), // Convert array to string for email
       startDate, 
       duration, 
       reminderEnabled
