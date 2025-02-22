@@ -10,7 +10,10 @@ const calculateMedicationProgress = async (req, res) => {
     if (!medication) {
       return res.status(404).json({ error: "Medication not found" });
     }
-
+    console.log("🔄 Updated takenHistory:", medication.takenHistory);
+    console.log(`🕒 Checking for Date: ${doseDate.toISOString().split("T")[0]}`);
+    console.log(`📌 Available Entries:`, medication.takenHistory);
+    
     if (!Array.isArray(medication.takenHistory)) {
       medication.takenHistory = [];
     }
@@ -21,13 +24,18 @@ const calculateMedicationProgress = async (req, res) => {
     for (let i = 0; i < medication.duration; i++) {
       const doseDate = new Date(medication.startDate);
       doseDate.setDate(doseDate.getDate() + i);
+      doseDate.setHours(0, 0, 0, 0); // Ensure time is removed 
+      console.log(`🕒 Checking for Date: ${doseDate.toISOString().split("T")[0]}`);
 
       const totalDosesForDay = Array.isArray(medication.time) ? medication.time.length : 0;
       if (totalDosesForDay === 0) continue;
 
       const takenEntry = medication.takenHistory.find((entry) => {
         const entryDate = new Date(entry.date); // Ensure Date object
-        return entryDate.toISOString().split("T")[0] === doseDate.toISOString().split("T")[0];
+        entryDate.setHours(0, 0, 0, 0); // Normalize time for matching
+        return entryDate.getTime() === doseDate.getTime();
+
+        // return entryDate.toISOString().split("T")[0] === doseDate.toISOString().split("T")[0];
       });
 
       let dosesTaken = takenEntry?.times?.length || 0;
