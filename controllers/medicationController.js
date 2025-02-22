@@ -57,9 +57,11 @@ const addMedication = async (req, res) => {
 const getMedications = async (req, res) => {
   try {
     const medications = await Medication.find({ userId: req.user.id }).sort({ createdAt: -1 });;
-   return res.status(200).json({success: true, medications});
+   return res.status(200).json({success: true,  
+  medications: medications.length > 0 ? medications : []  // Ensure array is returned
+   });
   } catch (error) {
-   return res.status(500).json({success:false, error: "Server Error" });
+   return res.status(500).json({success:false, error: "Server Error" , details: error.message});
   }
 };
 
