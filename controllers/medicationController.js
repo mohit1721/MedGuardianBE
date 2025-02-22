@@ -422,12 +422,12 @@ const markAsTaken = async (req, res) => {
    const scheduledTime = moment(`${formattedToday} ${formattedTime}`, "DD-MM-YYYY hh:mm A");
 
     // ✅ Prevent marking before time
-    // if (currentTime.isBefore(scheduledTime)) {
-    //   return res.status(400).json({ error: `You cannot mark this dose before ${formattedTime}.` });
-    // }
-    if (currentTime.diff(scheduledTime, "minutes") < 0) {
+    if (currentTime.isBefore(scheduledTime)) {
       return res.status(400).json({ error: `You cannot mark this dose before ${formattedTime}.` });
     }
+    // if (currentTime.diff(scheduledTime, "minutes") < 0) {
+    //   return res.status(400).json({ error: `You cannot mark this dose before ${formattedTime}.` });
+    // }
     console.log("✅ Received doseTime:", doseTime);
 console.log("✅ Parsed formattedTime:", formattedTime);
 console.log("✅ Current Server Time:", currentTime.format("DD-MM-YYYY hh:mm A"));
