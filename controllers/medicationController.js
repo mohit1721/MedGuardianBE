@@ -413,19 +413,30 @@ const markAsTaken = async (req, res) => {
       return res.status(404).json({ error: "Medication not found" });
     }
 
-    const formattedToday = moment().format("YYYY-MM-DD"); // Ensure local date
-    const formattedTime = moment(doseTime, ["h:mm A"]).format("hh:mm A");
-    const currentTime = moment(); // Get current time
-    const scheduledTime = moment(`${formattedToday} ${formattedTime}`, "YYYY-MM-DD hh:mm A");
+    // const formattedToday = moment().format("DD-MM-YYYY"); // Ensure local date
+    const formattedToday = moment().tz("Asia/Kolkata").format("DD-MM-YYYY"); // Use Indian timezone
+
+    const formattedTime = moment(doseTime, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A");
+
+    const currentTime = moment().tz("Asia/Kolkata");
+   const scheduledTime = moment(`${formattedToday} ${formattedTime}`, "DD-MM-YYYY hh:mm A");
 
     // ✅ Prevent marking before time
-    if (currentTime.isBefore(scheduledTime)) {
+    // if (currentTime.isBefore(scheduledTime)) {
+    //   return res.status(400).json({ error: `You cannot mark this dose before ${formattedTime}.` });
+    // }
+    if (currentTime.diff(scheduledTime, "minutes") < 0) {
       return res.status(400).json({ error: `You cannot mark this dose before ${formattedTime}.` });
     }
+    console.log("✅ Received doseTime:", doseTime);
+console.log("✅ Parsed formattedTime:", formattedTime);
+console.log("✅ Current Server Time:", currentTime.format("DD-MM-YYYY hh:mm A"));
+console.log("✅ Scheduled Dose Time:", scheduledTime.format("DD-MM-YYYY hh:mm A"));
+console.log("✅ Time Difference (minutes):", currentTime.diff(scheduledTime, "minutes"));
 
     // ✅ Check if today's date exists in takenHistory
     let existingEntry = medication.takenHistory.find(
-      (entry) => moment(entry.date).format("YYYY-MM-DD") === formattedToday
+      (entry) => moment(entry.date).format("DD-MM-YYYY") === formattedToday
     );
 
     const totalDosesPerDay = Array.isArray(medication.time) ? medication.time.length : 1; // Prevent errors

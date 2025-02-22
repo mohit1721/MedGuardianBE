@@ -41,7 +41,7 @@ medicationSchema.methods.calculateTakenAndSkippedDays = function () {
 
   scheduledDoses.forEach(({ date, times }) => {
     const dosesTakenForDay = this.takenHistory.filter(
-      (entry) => moment(entry.date).format("YYYY-MM-DD") === date
+      (entry) => moment(entry.date).format("DD-MM-YYYY") === date
     );
 
     const uniqueTimesTaken = new Set(dosesTakenForDay.map((entry) => entry.time));
