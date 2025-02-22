@@ -3,7 +3,7 @@ const MedicationHistory = require("../models/medicationHistoryModel");
 
 const { sendEmail } = require("../config/nodemailerConfig");
 const emailTemplateAdd = require("../mailTemplates/emailTemplateAdd")
-const moment = require("moment");
+const moment = require("moment-timezone");
 // Add Medication
 const addMedication = async (req, res) => {
   try {
