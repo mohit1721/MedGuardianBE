@@ -10,9 +10,17 @@ const medicationRoutes = require("./routes/medicationRoutes");
 
 dotenv.config();
 connectDB();
+const corsOptions = {
+    origin: ["http://localhost:3000", "https://medguardian.vercel.app"], // ✅ Only allow these origins
+    methods: "GET,POST,PUT,DELETE", // ✅ Allowed HTTP methods
+    allowedHeaders: "Content-Type,Authorization", // ✅ Allowed headers
+    credentials: true, // ✅ Allow cookies if needed
+  };
+  
 
+  
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 // process.env.TZ = "Asia/Kolkata";  // 🔥 Server ka global timezone fix
 // console.log("✅ Server Timezone Set to IST:", new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
