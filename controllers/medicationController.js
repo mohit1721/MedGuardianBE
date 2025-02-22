@@ -64,18 +64,18 @@ const getMedications = async (req, res) => {
 };
 
 // // Update Medication
-// const updateMedication = async (req, res) => {
-//   try {
-//     const medication = await Medication.findById(req.params.id);
-//     if (!medication) return res.status(404).json({ error: "Medication not found" });
+const updateMedication = async (req, res) => {
+  try {
+    const medication = await Medication.findById(req.params.id);
+    if (!medication) return res.status(404).json({ error: "Medication not found" });
 
-//     Object.assign(medication, req.body);
-//     await medication.save();
-//     res.json({ message: "Medication updated successfully", medication });
-//   } catch (error) {
-//     res.status(500).json({ error: "Server Error" });
-//   }
-// };
+    Object.assign(medication, req.body);
+    await medication.save();
+    res.json({ message: "Medication updated successfully", medication });
+  } catch (error) {
+    res.status(500).json({ error: "Server Error" });
+  }
+};
  
 // Delete Medication
 const deleteMedication = async (req, res) => {
@@ -315,7 +315,12 @@ const markAsTaken = async (req, res) => {
 
     const currentTime = moment().tz("Asia/Kolkata");
    const scheduledTime = moment(`${formattedToday} ${formattedTime}`, "DD-MM-YYYY hh:mm A", "Asia/Kolkata");
-
+  //  console.log("✅ Received doseTime:", doseTime);
+  //  console.log("✅ Converted to IST formattedTime:", formattedTime);
+  //  console.log("✅ Current Server Time(IST):", currentTime.format("DD-MM-YYYY hh:mm A"));
+  //  console.log("✅ Scheduled Dose Time(IST):", scheduledTime.format("DD-MM-YYYY hh:mm A"));
+  //  console.log("✅ Time Difference (minutes):", currentTime.diff(scheduledTime, "minutes"));
+   
     // ✅ Prevent marking before time
     if (currentTime.isBefore(scheduledTime)) {
       return res.status(400).json({ error: `You cannot mark this dose before ${formattedTime}.` });
@@ -323,11 +328,6 @@ const markAsTaken = async (req, res) => {
     // if (currentTime.diff(scheduledTime, "minutes") < 0) {
     //   return res.status(400).json({ error: `You cannot mark this dose before ${formattedTime}.` });
     // }
-console.log("✅ Received doseTime:", doseTime);
-console.log("✅ Parsed formattedTime:", formattedTime);
-console.log("✅ Current Server Time:", currentTime.format("DD-MM-YYYY hh:mm A"));
-console.log("✅ Scheduled Dose Time:", scheduledTime.format("DD-MM-YYYY hh:mm A"));
-console.log("✅ Time Difference (minutes):", currentTime.diff(scheduledTime, "minutes"));
 
     // ✅ Check if today's date exists in takenHistory
     let existingEntry = medication.takenHistory.find(

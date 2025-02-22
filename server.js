@@ -14,6 +14,8 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+// process.env.TZ = "Asia/Kolkata";  // 🔥 Server ka global timezone fix
+// console.log("✅ Server Timezone Set to IST:", new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
 
 app.use("/api/auth", userRoutes);
 app.use("/api/medications", medicationRoutes);
