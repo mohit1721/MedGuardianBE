@@ -9,6 +9,8 @@ const medicationSchema = new mongoose.Schema({
   time: { type: [String], required: true }, // Scheduled times per day (e.g., ["07:50 AM", "08:30 PM"])
   startDate: { type: Date, required: true },
   duration: { type: Number, required: true }, // Duration in days
+  expiryDate: { type: Date }, // Auto-calculate expiry date
+
   reminderEnabled: { type: Boolean, default: true },
   takenHistory: [
     {
@@ -17,6 +19,12 @@ const medicationSchema = new mongoose.Schema({
     },
   ],
   
+});
+// Auto-set expiry date before saving
+medicationSchema.pre("save", function (next) {
+  this.expiryDate = new Date(this.startDate);
+  this.expiryDate.setDate(this.expiryDate.getDate() + this.duration);
+  next();
 });
 // Indexing for efficient sorting by creation time ,
 // { timestamps: true }

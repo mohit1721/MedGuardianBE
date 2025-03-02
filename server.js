@@ -7,7 +7,7 @@ const connectDB = require("./config/db");
 const scheduleEmails = require("./utils/scheduleEmails");
 const userRoutes = require("./routes/userRoutes");
 const medicationRoutes = require("./routes/medicationRoutes");
-
+ const cronJobs = require("./utils/cronJobs") //The moment cronJobs.js is imported, the cron job automatically registers and runs on schedule.
 dotenv.config();
 connectDB();
 const corsOptions = {
