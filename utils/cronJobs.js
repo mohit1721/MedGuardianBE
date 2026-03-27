@@ -16,3 +16,5 @@ cron.schedule("0 0 * * *", async () => {
   scheduled: true,
   timezone: "Asia/Kolkata"
 });
+
+module.exports = {};
