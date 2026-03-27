@@ -3,6 +3,17 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+
+// Compatibility guard for older JWT transitive deps on newer Node versions.
+// Some packages still access `SlowBuffer.prototype` directly.
+const bufferModule = require("buffer");
+if (!global.SlowBuffer) {
+  global.SlowBuffer = Buffer;
+}
+if (!bufferModule.SlowBuffer) {
+  bufferModule.SlowBuffer = Buffer;
+}
+
 const connectDB = require("./config/db");
 const scheduleEmails = require("./utils/scheduleEmails");
 const userRoutes = require("./routes/userRoutes");
