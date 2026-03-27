@@ -1,6 +1,6 @@
-import cron from "node-cron";
-import Medication from "../models/medicationModel";
-import moment from "moment-timezone";
+const cron = require("node-cron");
+const Medication = require("../models/medicationModel");
+const moment = require("moment-timezone");
 
 cron.schedule("0 0 * * *", async () => {
   try {
@@ -16,3 +16,5 @@ cron.schedule("0 0 * * *", async () => {
   scheduled: true,
   timezone: "Asia/Kolkata"
 });
+
+module.exports = {};

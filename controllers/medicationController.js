@@ -1,5 +1,6 @@
 const Medication = require("../models/medicationModel");
 const MedicationHistory = require("../models/medicationHistoryModel");
+const mongoose = require("mongoose");
 
 const { sendEmail } = require("../config/nodemailerConfig");
 const emailTemplateAdd = require("../mailTemplates/emailTemplateAdd")
@@ -10,12 +11,18 @@ const addMedication = async (req, res) => {
     const { name, dosage, time, startDate, duration, reminderEnabled } = req.body;
     if (!name || !dosage || !time || !startDate || !duration) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
-  }
- 
-   // Ensure time is an array, format each time properly in AM/PM
-   const formattedTimes = Array.isArray(time)
-   ? time.map(t => moment(t, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A"))
-   : [moment(time, ["h:mm A"]).tz("Asia/Kolkata").format("hh:mm A")];
+    }
+
+    // Ensure time is an array, validate, and format each time properly in AM/PM
+    const inputTimes = Array.isArray(time) ? time : [time];
+    const invalidTime = inputTimes.find((t) => !moment(t, ["h:mm A"], true).isValid());
+    if (invalidTime) {
+      return res.status(400).json({ success: false, message: "Invalid time format. Use h:mm A (e.g. 8:30 PM)." });
+    }
+
+    const formattedTimes = inputTimes.map((t) =>
+      moment.tz(t, ["h:mm A"], true, "Asia/Kolkata").format("hh:mm A")
+    );
 
     const newMedication = new Medication({
       userId: req.user.id,
@@ -68,7 +75,11 @@ const getMedications = async (req, res) => {
 // // Update Medication
 const updateMedication = async (req, res) => {
   try {
-    const medication = await Medication.findById(req.params.id);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid medication id" });
+    }
+
+    const medication = await Medication.findOne({ _id: req.params.id, userId: req.user.id });
     if (!medication) return res.status(404).json({ error: "Medication not found" });
 
     Object.assign(medication, req.body);
@@ -82,7 +93,11 @@ const updateMedication = async (req, res) => {
 // Delete Medication
 const deleteMedication = async (req, res) => {
   try {
-    await Medication.findByIdAndDelete(req.params.id);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid medication id" });
+    }
+
+    await Medication.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     res.json({ message: "Medication deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Server Error" });
@@ -136,25 +151,15 @@ const getDoseSchedule = async (req, res) => {
  
 
 const getMedicationById = async (req, res) => {
-  console.log("🔍 Request Params:", req.params); // Debugging log
-  console.log("🔍 Extracted ID:", req.params.id, "Type:", typeof req.params.id); // Check ID format
-
   let { id } = req.params;
 
   // Validate if ID is properly formatted
-  if (!id || typeof id !== "string") {
-    console.error("❌ Invalid Medication ID:", id);
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ error: "Invalid Medication ID format." });
   }
-
-  // Convert ID to string if it's an object
-  if (typeof id === "object") {
-    id = id.toString();
-  }
-
  
   try {
-    const medication = await Medication.findById(id);
+    const medication = await Medication.findOne({ _id: id, userId: req.user.id });
 
     if (!medication) {
       return res.status(404).json({ error: "Medication not found." });
@@ -172,7 +177,6 @@ const getMedicationById = async (req, res) => {
       totalDays
     });
   } catch (error) {
-    console.error("❌ Error fetching medication:", error.message);
     return res.status(500).json({ error: "Error fetching medication", details: error.message });
   }
 };

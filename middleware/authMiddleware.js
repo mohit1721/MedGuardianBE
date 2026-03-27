@@ -1,7 +1,7 @@
 
 // **
-const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const { verifyToken } = require("../utils/jwt");
 
 const authMiddleware = async (req, res, next) => {
     try {
@@ -16,7 +16,7 @@ const authMiddleware = async (req, res, next) => {
         // console.log("Authorization Header:", req.header("Authorization"));
 
         // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = verifyToken(token, process.env.JWT_SECRET);
         if (!decoded.id) {
             return res.status(401).json({ error: "Unauthorized: Token is invalid" });
         }
