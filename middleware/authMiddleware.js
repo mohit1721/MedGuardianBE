@@ -3,6 +3,15 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
+const getTokenFromRequest = (req) => {
+    if (req.header("Authorization")?.startsWith("Bearer ")) {
+        return req.header("Authorization").split(" ")[1];
+    }
+    if (req.cookies?.token) return req.cookies.token;
+    if (req.body?.token) return req.body.token;
+    if (req.query?.token) return req.query.token;
+    return null;
+};
 const authMiddleware = async (req, res, next) => {
     try {
         // Ensure token exists
@@ -12,7 +21,7 @@ const authMiddleware = async (req, res, next) => {
         }
 
         // Extract token
-        const token = authHeader.split(" ")[1];
+        const token = getTokenFromRequest(req);
         // console.log("Authorization Header:", req.header("Authorization"));
 
         // Verify token
